@@ -1,0 +1,125 @@
+@if (canchas().length === 0) {
+  <div class="card">
+    <app-estado-vacio icono="bi-pin-map" mensaje="No hay canchas registradas." />
+  </div>
+} @else {
+  <div class="card">
+    <div class="card-body border-bottom">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label mb-1" for="cancha-semana">Cancha</label>
+          <select
+            id="cancha-semana"
+            class="form-select"
+            [value]="cancha()?.id ?? ''"
+            (change)="elegirCancha($any($event.target).value)"
+          >
+            @for (c of canchas(); track c.id) {
+              <option [value]="c.id">{{ nombreCancha(c.id) }} · {{ c.horario }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-8 d-flex flex-wrap justify-content-md-end align-items-center gap-2">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            aria-label="Semana anterior"
+            (click)="moverSemana(-1)"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span class="fw-semibold semana">{{ etiquetaSemana() }}</span>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            aria-label="Semana siguiente"
+            (click)="moverSemana(1)"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            [disabled]="esSemanaActual()"
+            (click)="irAHoy()"
+          >
+            Esta semana
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (cancha()?.estado === 'MANTENIMIENTO') {
+      <div class="alert alert-warning rounded-0 border-start-0 border-end-0 mb-0">
+        <i class="bi bi-cone-striped me-1"></i>Esta cancha está en mantenimiento y no admite
+        alquileres.
+      </div>
+    }
+    @if (error()) {
+      <div class="alert alert-warning rounded-0 border-start-0 border-end-0 mb-0">
+        {{ error() }}
+      </div>
+    }
+
+    @if (cargando()) {
+      <div class="text-center text-muted py-5">
+        <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+      </div>
+    } @else if (rejilla(); as g) {
+      <div class="contenedor-semana">
+        <div class="rejilla" [style.--hora]="pxHora + 'px'">
+          <div></div>
+          @for (d of g.dias; track d.iso) {
+            <div class="cab-dia" [class.hoy]="d.esHoy">
+              <span class="nombre">{{ d.nombre }}</span>
+              <span class="numero">{{ d.numero }}</span>
+            </div>
+          }
+
+          <div class="horas" [style.height.px]="g.alto" aria-hidden="true">
+            @for (h of g.horas; track h.texto) {
+              <span [style.top.px]="h.top">{{ h.texto }}</span>
+            }
+          </div>
+
+          @for (d of g.dias; track d.iso) {
+            <div class="col-dia" [class.hoy]="d.esHoy" [style.height.px]="g.alto">
+              @if (g.fueraAntes > 0) {
+                <div class="fuera" [style.top.px]="0" [style.height.px]="g.fueraAntes"></div>
+              }
+              @if (g.fueraDespues > 0) {
+                <div
+                  class="fuera"
+                  [style.top.px]="g.topDespues"
+                  [style.height.px]="g.fueraDespues"
+                ></div>
+              }
+              @for (b of d.bloques; track $index) {
+                <div
+                  class="bloque"
+                  [class.entreno]="b.tipo === 'ENTRENAMIENTO'"
+                  [class.reservado]="b.tipo === 'ALQUILER' && b.estado !== 'FINALIZADO'"
+                  [class.finalizado]="b.tipo === 'ALQUILER' && b.estado === 'FINALIZADO'"
+                  [style.top.px]="b.top"
+                  [style.height.px]="b.alto"
+                  [title]="titulo(b)"
+                >
+                  <div class="t">{{ b.titulo }}</div>
+                  <div class="h">{{ b.horario.replace('-', ' – ') }}</div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="card-footer bg-white d-flex flex-wrap gap-3 small text-muted">
+        <span><i class="leyenda entreno"></i>Entrenamiento</span>
+        <span><i class="leyenda reservado"></i>Alquiler reservado</span>
+        <span><i class="leyenda finalizado"></i>Alquiler finalizado</span>
+        <span><i class="leyenda fuera"></i>Fuera del horario de atención</span>
+        <span class="ms-auto">El espacio en blanco está libre.</span>
+      </div>
+    }
+  </div>
+}

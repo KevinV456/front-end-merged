@@ -1,0 +1,142 @@
+.semana {
+  min-width: 15rem;
+  text-align: center;
+}
+
+.contenedor-semana {
+  overflow-x: auto;
+  padding: 0.75rem 1rem 1.25rem;
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: 3rem repeat(7, minmax(7rem, 1fr));
+  min-width: 52rem;
+}
+
+.cab-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--ts-borde);
+  font-size: 0.8rem;
+  color: #4a5a52;
+}
+.cab-dia .nombre {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+.cab-dia .numero {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--bs-body-color);
+}
+.cab-dia.hoy .numero {
+  background: var(--ts-600);
+  color: #fff;
+  border-radius: 50%;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.horas {
+  position: relative;
+  margin-top: 0.5rem;
+}
+.horas span {
+  position: absolute;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  color: #6b7a72;
+}
+
+.col-dia {
+  position: relative;
+  margin-top: 0.5rem;
+  border-left: 1px solid var(--ts-borde);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--hora) - 1px),
+    var(--ts-borde) calc(var(--hora) - 1px),
+    var(--ts-borde) var(--hora)
+  );
+}
+.col-dia:last-child {
+  border-right: 1px solid var(--ts-borde);
+}
+.col-dia.hoy {
+  background-color: var(--ts-50);
+}
+
+.fuera,
+i.fuera {
+  background: repeating-linear-gradient(45deg, #f1f3f2 0 6px, #e6ebe8 6px 12px);
+}
+.col-dia .fuera {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.bloque {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.4rem;
+  border-left: 3px solid;
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+.bloque .t {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bloque .h {
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.entreno,
+i.entreno {
+  background: var(--ts-100);
+  border-color: var(--ts-600);
+  color: var(--ts-700);
+}
+.reservado,
+i.reservado {
+  background: #e3effb;
+  border-color: #1d4f86;
+  color: #1d4f86;
+}
+.finalizado,
+i.finalizado {
+  background: #eceff1;
+  border-color: #4a5a52;
+  color: #4a5a52;
+}
+
+i.leyenda {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.2rem;
+  border-left: 3px solid;
+  margin-right: 0.35rem;
+  vertical-align: -0.1rem;
+}
+i.leyenda.fuera {
+  border-left-color: #c9d1cd;
+}

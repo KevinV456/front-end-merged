@@ -1,0 +1,125 @@
+<app-page-header titulo="Canchas" subtitulo="Horario de atención y estado de cada cancha">
+  @if (auth.tieneRol('ADMIN')) {
+    <a routerLink="/canchas/nuevo" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Nueva cancha
+    </a>
+  }
+</app-page-header>
+
+@if (error()) {
+  <div class="alert alert-danger d-flex justify-content-between align-items-center">
+    <span>{{ error() }}</span>
+    <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+      Reintentar
+    </button>
+  </div>
+}
+@if (exito()) {
+  <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>{{ exito() }}</div>
+}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-ts align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Cancha</th>
+          <th>Horario de atención</th>
+          <th>Estado</th>
+          @if (auth.tieneRol('ADMIN')) {
+            <th class="text-end">Acciones</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td [attr.colspan]="auth.tieneRol('ADMIN') ? 4 : 3" class="text-center py-4 text-muted">
+              <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+            </td>
+          </tr>
+        } @else {
+          @for (c of canchas(); track c.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <span class="avatar"><i class="bi bi-pin-map"></i></span>
+                  <span class="fw-semibold">{{ nombre(c.id) }}</span>
+                </div>
+              </td>
+              <td>{{ c.horario }}</td>
+              <td>
+                <app-badge-estado [tono]="tono(c.estado)">{{ texto(c.estado) }}</app-badge-estado>
+              </td>
+              @if (auth.tieneRol('ADMIN')) {
+                <td class="text-end text-nowrap">
+                  <a
+                    class="btn-accion editar"
+                    [routerLink]="['/canchas', c.id, 'editar']"
+                    title="Editar"
+                    aria-label="Editar"
+                  >
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  <button
+                    type="button"
+                    class="btn-accion borrar ms-1"
+                    title="Dar de baja"
+                    aria-label="Dar de baja"
+                    (click)="pedirBaja(c)"
+                  >
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="auth.tieneRol('ADMIN') ? 4 : 3">
+                <app-estado-vacio icono="bi-pin-map" mensaje="No hay canchas registradas." />
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-white small text-muted">{{ canchas().length }} registro(s)</div>
+</div>
+
+@if (porEliminar(); as c) {
+  <app-modal titulo="Dar de baja" [ancho]="460" (cerrar)="cancelarBaja()">
+    <p class="mb-2">
+      ¿Seguro que deseas dar de baja la <strong>{{ nombre(c.id) }}</strong>?
+    </p>
+    <p class="text-muted small mb-0">
+      Se eliminará de forma permanente. No se puede dar de baja si tiene entrenamientos o alquileres
+      asociados.
+    </p>
+    @if (errorBaja()) {
+      <div class="alert alert-danger mt-3 mb-0">{{ errorBaja() }}</div>
+    }
+    <div pie>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        [disabled]="eliminando()"
+        (click)="cancelarBaja()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        [disabled]="eliminando()"
+        (click)="confirmarBaja()"
+      >
+        @if (eliminando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+        } @else {
+          <i class="bi bi-trash3 me-1"></i>Dar de baja
+        }
+      </button>
+    </div>
+  </app-modal>
+}

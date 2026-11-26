@@ -1,0 +1,221 @@
+<app-page-header titulo="Alquileres" subtitulo="Uso de la cancha por terceros">
+  <div class="btn-group" role="group" aria-label="Vista">
+    <button
+      type="button"
+      class="btn btn-sm"
+      [class]="vista() === 'lista' ? 'btn-primary' : 'btn-outline-secondary'"
+      (click)="vista.set('lista')"
+    >
+      <i class="bi bi-list-ul me-1"></i>Lista
+    </button>
+    <button
+      type="button"
+      class="btn btn-sm"
+      [class]="vista() === 'semana' ? 'btn-primary' : 'btn-outline-secondary'"
+      (click)="vista.set('semana')"
+    >
+      <i class="bi bi-calendar-week me-1"></i>Disponibilidad
+    </button>
+  </div>
+  <a routerLink="/alquileres/nuevo" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo alquiler
+  </a>
+</app-page-header>
+
+@if (error()) {
+  <div class="alert alert-danger d-flex justify-content-between align-items-center">
+    <span>{{ error() }}</span>
+    <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+      Reintentar
+    </button>
+  </div>
+}
+@if (exito()) {
+  <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>{{ exito() }}</div>
+}
+
+@if (vista() === 'semana') {
+  @if (cargando()) {
+    <div class="card">
+      <div class="card-body text-center text-muted py-5">
+        <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+      </div>
+    </div>
+  } @else if (!error()) {
+    <app-disponibilidad-semanal [canchas]="canchas()" [alquileres]="alquileres()" />
+  }
+} @else {
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label mb-1" for="filtro-fecha">Fecha</label>
+          <input
+            id="filtro-fecha"
+            type="date"
+            class="form-control"
+            [value]="fecha()"
+            (change)="fecha.set($any($event.target).value)"
+          />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1" for="filtro-cancha">Cancha</label>
+          <select
+            id="filtro-cancha"
+            class="form-select"
+            [value]="canchaId()"
+            (change)="canchaId.set($any($event.target).value)"
+          >
+            <option value="">Todas</option>
+            @for (c of canchas(); track c.id) {
+              <option [value]="c.id">{{ nombreCancha(c.id) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1" for="filtro-estado">Estado</label>
+          <select
+            id="filtro-estado"
+            class="form-select"
+            [value]="estado()"
+            (change)="estado.set($any($event.target).value)"
+          >
+            <option value="">Todos</option>
+            @for (e of estados; track e.valor) {
+              <option [value]="e.valor">{{ e.texto }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            [disabled]="!hayFiltros()"
+            (click)="limpiar()"
+          >
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-ts align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Horario</th>
+            <th>Cancha</th>
+            <th>Cliente</th>
+            <th class="text-end">Monto</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (cargando()) {
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">
+                <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+              </td>
+            </tr>
+          } @else {
+            @for (a of filtrados(); track a.id) {
+              <tr [class.text-muted]="a.estado === 'CANCELADO'">
+                <td class="text-nowrap">{{ a.fecha | fecha }}</td>
+                <td class="text-nowrap">{{ a.horario.replace('-', ' – ') }}</td>
+                <td>{{ nombreCancha(a.cancha.id) }}</td>
+                <td class="lh-sm">
+                  <div class="fw-semibold">{{ a.solicitante }}</div>
+                  @if (a.contacto) {
+                    <small class="text-muted">{{ a.contacto }}</small>
+                  }
+                </td>
+                <td class="text-end text-nowrap">
+                  {{ a.monto | currency: 'PEN' : 'S/ ' : '1.2-2' }}
+                </td>
+                <td>
+                  <app-badge-estado [tono]="tono(a.estado)">{{ texto(a.estado) }}</app-badge-estado>
+                </td>
+                <td class="text-end text-nowrap">
+                  <a
+                    class="btn-accion editar"
+                    [routerLink]="['/alquileres', a.id, 'editar']"
+                    title="Editar"
+                    aria-label="Editar"
+                  >
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  @if (a.estado === 'RESERVADO') {
+                    <button
+                      type="button"
+                      class="btn-accion borrar ms-1"
+                      title="Cancelar alquiler"
+                      aria-label="Cancelar alquiler"
+                      (click)="pedirCancelacion(a)"
+                    >
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7">
+                  <app-estado-vacio
+                    icono="bi-calendar2-x"
+                    [mensaje]="
+                      hayFiltros()
+                        ? 'Ningún alquiler coincide con los filtros.'
+                        : 'Todavía no hay alquileres registrados.'
+                    "
+                  />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer bg-white small text-muted">{{ filtrados().length }} registro(s)</div>
+  </div>
+}
+
+@if (porCancelar(); as a) {
+  <app-modal titulo="Cancelar alquiler" [ancho]="480" (cerrar)="volver()">
+    <p class="mb-2">
+      ¿Seguro que deseas cancelar el alquiler de <strong>{{ a.solicitante }}</strong>?
+    </p>
+    <p class="text-muted small mb-0">
+      {{ nombreCancha(a.cancha.id) }} · {{ a.fecha | fecha }} · {{ a.horario.replace('-', ' – ') }}.
+      El horario quedará libre y el registro se conserva como cancelado.
+    </p>
+    @if (errorCancelar()) {
+      <div class="alert alert-danger mt-3 mb-0">{{ errorCancelar() }}</div>
+    }
+    <div pie>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        [disabled]="cancelando()"
+        (click)="volver()"
+      >
+        Volver
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        [disabled]="cancelando()"
+        (click)="confirmarCancelacion()"
+      >
+        @if (cancelando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+        } @else {
+          <i class="bi bi-x-circle me-1"></i>Cancelar alquiler
+        }
+      </button>
+    </div>
+  </app-modal>
+}

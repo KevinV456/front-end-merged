@@ -1,0 +1,15 @@
+<h2>Prueba de conexión con el backend</h2>
+
+<button (click)="cargar()" [disabled]="cargando()">
+  Llamar a /api/publico/saludo
+</button>
+
+@if (cargando()) {
+  <p>Cargando...</p>
+}
+@if (mensaje()) {
+  <p>Respuesta del backend: <strong>{{ mensaje() }}</strong></p>
+}
+@if (error()) {
+  <p style="color: red">{{ error() }}</p>
+}

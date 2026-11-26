@@ -1,0 +1,124 @@
+<app-page-header titulo="Entrenadores" subtitulo="Cuerpo técnico activo de la academia">
+  <a routerLink="/entrenadores/nuevo" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo entrenador
+  </a>
+</app-page-header>
+
+@if (error()) {
+  <div class="alert alert-danger">{{ error() }}</div>
+}
+@if (exito()) {
+  <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>{{ exito() }}</div>
+}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-ts align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Entrenador</th>
+          <th>Categoría asignada</th>
+          <th>Teléfono</th>
+          <th>Correo</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td colspan="5" class="text-center py-4 text-muted">
+              <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+            </td>
+          </tr>
+        } @else {
+          @for (e of entrenadores(); track e.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <span class="avatar">{{ e.nombre.charAt(0) }}{{ e.apellido.charAt(0) }}</span>
+                  <div class="lh-sm">
+                    <div class="fw-semibold">{{ e.nombre }} {{ e.apellido }}</div>
+                    <small class="text-muted">DNI {{ e.dni }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                @if (e.catAsignada) {
+                  <app-badge-estado tono="verde">{{ e.catAsignada.nombre }}</app-badge-estado>
+                } @else {
+                  <app-badge-estado tono="gris">Sin asignar</app-badge-estado>
+                }
+              </td>
+              <td>{{ e.contacto }}</td>
+              <td>{{ e.correo ?? '—' }}</td>
+              <td class="text-end text-nowrap">
+                <a
+                  class="btn-accion editar"
+                  [routerLink]="['/entrenadores', e.id, 'editar']"
+                  title="Editar"
+                  aria-label="Editar"
+                >
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+                <button
+                  type="button"
+                  class="btn-accion borrar ms-1"
+                  title="Dar de baja"
+                  aria-label="Dar de baja"
+                  (click)="pedirBaja(e)"
+                >
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">
+                <app-estado-vacio icono="bi-person-badge" mensaje="No hay entrenadores activos." />
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-white small text-muted">{{ entrenadores().length }} registro(s)</div>
+</div>
+
+@if (porDesactivar(); as e) {
+  <app-modal titulo="Dar de baja" [ancho]="460" (cerrar)="cancelarBaja()">
+    <p class="mb-2">
+      ¿Seguro que deseas dar de baja a <strong>{{ e.nombre }} {{ e.apellido }}</strong
+      >?
+    </p>
+    <p class="text-muted small mb-0">
+      Dejará de aparecer en el listado y su cuenta de acceso (si tiene) quedará desactivada. Se
+      conserva su historial.
+    </p>
+    @if (errorBaja()) {
+      <div class="alert alert-danger mt-3 mb-0">{{ errorBaja() }}</div>
+    }
+    <div pie>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        [disabled]="desactivando()"
+        (click)="cancelarBaja()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        [disabled]="desactivando()"
+        (click)="confirmarBaja()"
+      >
+        @if (desactivando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+        } @else {
+          <i class="bi bi-trash3 me-1"></i>Dar de baja
+        }
+      </button>
+    </div>
+  </app-modal>
+}

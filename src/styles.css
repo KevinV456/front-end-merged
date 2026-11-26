@@ -1,1 +1,133 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --ts-900: #0b2e22;
+  --ts-700: #145a3d;
+  --ts-600: #1b7f4b;
+  --ts-100: #e3f3ea;
+  --ts-50: #f3f9f6;
+  --ts-lima: #c6ef3d;
+  --ts-borde: #e1e8e4;
+
+  --bs-body-bg: #f5f7f6;
+  --bs-body-color: #1c2b24;
+  --bs-border-color: #e1e8e4;
+  --bs-primary: #1b7f4b;
+  --bs-primary-rgb: 27, 127, 75;
+  --bs-link-color-rgb: 27, 127, 75;
+  --bs-link-hover-color-rgb: 20, 90, 61;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Botones */
+.btn-primary {
+  --bs-btn-bg: #1b7f4b;
+  --bs-btn-border-color: #1b7f4b;
+  --bs-btn-hover-bg: #145a3d;
+  --bs-btn-hover-border-color: #145a3d;
+  --bs-btn-active-bg: #0f4430;
+  --bs-btn-active-border-color: #0f4430;
+  --bs-btn-disabled-bg: #1b7f4b;
+  --bs-btn-disabled-border-color: #1b7f4b;
+}
+
+/* Tarjetas */
+.card {
+  --bs-card-border-color: var(--ts-borde);
+  --bs-card-border-radius: 0.875rem;
+  --bs-card-cap-bg: #fff;
+  box-shadow: 0 1px 2px rgba(11, 46, 34, 0.05);
+}
+
+/* Formularios */
+.form-label {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #24a05d;
+  box-shadow: 0 0 0 0.2rem rgba(36, 160, 93, 0.2);
+}
+
+/* Tablas */
+.table-ts {
+  --bs-table-bg: transparent;
+}
+.table-ts thead th {
+  background: var(--ts-50);
+  color: var(--ts-700);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border-bottom: 1px solid var(--ts-borde);
+  padding: 0.85rem 1rem;
+}
+.table-ts tbody td {
+  padding: 0.8rem 1rem;
+}
+.table-ts tbody tr:hover {
+  background: var(--ts-50);
+}
+
+/* Utilidades de la academia */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--ts-100);
+  color: var(--ts-700);
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.icono-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background: var(--ts-100);
+  color: var(--ts-600);
+  font-size: 1.4rem;
+}
+
+.enlace-card {
+  color: inherit;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.enlace-card:hover {
+  border-color: var(--ts-600);
+  transform: translateY(-2px);
+}
+
+.avatar-lg {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.1rem;
+}
+
+.btn-accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--ts-borde);
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #4a5a52;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-accion.ver:hover { background: var(--ts-100); color: var(--ts-700); border-color: var(--ts-600); }
+.btn-accion.editar:hover { background: #e3effb; color: #1d4f86; border-color: #1d4f86; }
+.btn-accion.borrar:hover { background: #fde8e8; color: #9b2c2c; border-color: #9b2c2c; }

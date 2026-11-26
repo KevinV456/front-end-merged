@@ -1,0 +1,10 @@
+<app-sidebar [items]="menu()" [abierto]="menuAbierto()" (navegar)="menuAbierto.set(false)" />
+
+<div class="contenido">
+  <app-navbar (alternar)="menuAbierto.update((v) => !v)" />
+  <main class="p-3 p-md-4">
+    <div class="contenedor">
+      <router-outlet />
+    </div>
+  </main>
+</div>

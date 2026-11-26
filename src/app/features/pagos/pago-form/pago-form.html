@@ -1,0 +1,90 @@
+<app-page-header titulo="Registrar mensualidad" subtitulo="Mensualidad pendiente de un niño" />
+
+@if (exito(); as r) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <span class="icono-stat mb-3"><i class="bi bi-check-lg"></i></span>
+      <h2 class="h5">{{ r.titulo }}</h2>
+      <p class="text-muted mb-4">{{ r.texto }}</p>
+      <button class="btn btn-primary me-2" (click)="registrarOtra()">Registrar otra</button>
+      <a routerLink="/pagos" class="btn btn-outline-secondary">Ver pagos</a>
+    </div>
+  </div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="guardar()" novalidate autocomplete="off">
+    <div class="card">
+      <div class="card-body p-4">
+        @if (errores().length) {
+          <div class="alert alert-danger">
+            @for (m of errores(); track m) {
+              <div>{{ m }}</div>
+            }
+          </div>
+        }
+
+        <app-form-seccion titulo="Datos de la mensualidad" icono="bi-cash-coin">
+          <div class="row g-3">
+            <div class="col-12">
+              <app-form-campo etiqueta="Niño" [requerido]="true" [error]="mensaje('ninoId')">
+                <select
+                  class="form-select"
+                  formControlName="ninoId"
+                  [class.is-invalid]="!!mensaje('ninoId')"
+                >
+                  <option [ngValue]="null">Selecciona...</option>
+                  @for (n of ninos(); track n.id) {
+                    <option [ngValue]="n.id">{{ n.etiqueta }}</option>
+                  }
+                </select>
+              </app-form-campo>
+            </div>
+
+            <div class="col-md-6">
+              <app-form-campo etiqueta="Monto" [requerido]="true" [error]="mensaje('monto')">
+                <div class="input-group">
+                  <span class="input-group-text">S/</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    formControlName="monto"
+                    step="0.01"
+                    min="0"
+                    inputmode="decimal"
+                    [class.is-invalid]="!!mensaje('monto')"
+                  />
+                </div>
+              </app-form-campo>
+            </div>
+
+            <div class="col-md-6">
+              <app-form-campo
+                etiqueta="Fecha de vencimiento"
+                [requerido]="true"
+                [error]="mensaje('fecha')"
+                ayuda="Por defecto, el último día del mes."
+              >
+                <input
+                  type="date"
+                  class="form-control"
+                  formControlName="fecha"
+                  [class.is-invalid]="!!mensaje('fecha')"
+                />
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+      </div>
+
+      <div class="card-footer bg-white d-flex justify-content-end gap-2 p-3">
+        <a routerLink="/pagos" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+          } @else {
+            <i class="bi bi-check-lg me-1"></i>Registrar mensualidad
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+}

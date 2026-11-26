@@ -1,0 +1,55 @@
+<app-page-header [titulo]="'Hola, ' + auth.usuario()" subtitulo="Resumen general de la academia" />
+
+<div class="row g-3">
+  <div class="col-sm-6 col-xl-3">
+    <a routerLink="/ninos" class="card h-100 text-decoration-none enlace-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <span class="icono-stat"><i class="bi bi-people"></i></span>
+        <div>
+          <div class="text-muted small">Niños activos</div>
+          <div class="fs-3 fw-bold lh-1">{{ totalNinos() ?? '—' }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  @if (auth.tieneRol('ADMIN')) {
+    <div class="col-sm-6 col-xl-3">
+      <a routerLink="/pagos" class="card h-100 text-decoration-none enlace-card">
+        <div class="card-body d-flex align-items-center gap-3">
+          <span class="icono-stat"><i class="bi bi-cash-coin"></i></span>
+          <div>
+            <div class="text-muted small">Pagos pendientes</div>
+            <div class="fs-3 fw-bold lh-1">{{ pagosPendientes() ?? '—' }}</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  }
+
+  <div class="col-sm-6 col-xl-3">
+    <a routerLink="/entrenamientos" class="card h-100 text-decoration-none enlace-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <span class="icono-stat"><i class="bi bi-calendar-week"></i></span>
+        <div>
+          <div class="text-muted small">Sesiones de hoy</div>
+          <div class="fs-3 fw-bold lh-1">{{ sesionesHoy() ?? '—' }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  @if (auth.tieneRol('ADMIN')) {
+    <div class="col-sm-6 col-xl-3">
+      <a routerLink="/alquileres" class="card h-100 text-decoration-none enlace-card">
+        <div class="card-body d-flex align-items-center gap-3">
+          <span class="icono-stat"><i class="bi bi-calendar2-check"></i></span>
+          <div>
+            <div class="text-muted small">Alquileres de hoy</div>
+            <div class="fs-3 fw-bold lh-1">{{ alquileresHoy() ?? '—' }}</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  }
+</div>

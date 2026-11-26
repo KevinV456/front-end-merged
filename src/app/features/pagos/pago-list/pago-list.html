@@ -1,0 +1,177 @@
+<app-page-header titulo="Pagos" subtitulo="Mensualidades de los niños">
+  <a routerLink="/pagos/nuevo" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Registrar mensualidad
+  </a>
+</app-page-header>
+
+<div class="card mb-3">
+  <div class="card-body d-flex align-items-center gap-3">
+    <span class="icono-stat"><i class="bi bi-hourglass-split"></i></span>
+    <div>
+      <div class="text-muted small">
+        Total pendiente{{ ninoId() ? ' del niño seleccionado' : '' }}
+      </div>
+      <div class="fs-3 fw-bold lh-1">{{ totalPendiente() | currency: 'PEN' : 'S/ ' }}</div>
+      <small class="text-muted">{{ cantidadPendiente() }} mensualidad(es) por cobrar</small>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label mb-1">Estado</label>
+        <select
+          class="form-select"
+          [value]="estado()"
+          (change)="filtrarEstado($any($event.target).value)"
+        >
+          <option value="">Todos</option>
+          <option value="PENDIENTE">Pendientes</option>
+          <option value="PAGADO">Pagados</option>
+        </select>
+      </div>
+
+      <div class="col-md-5">
+        <label class="form-label mb-1">Niño</label>
+        <select
+          class="form-select"
+          [value]="ninoId()"
+          (change)="filtrarNino($any($event.target).value)"
+        >
+          <option value="">Todos</option>
+          @for (n of ninos(); track n.id) {
+            <option [value]="n.id">{{ n.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <button class="btn btn-outline-secondary w-100" (click)="limpiar()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert alert-danger">{{ error() }}</div>
+}
+@if (exito()) {
+  <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>{{ exito() }}</div>
+}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-ts align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Niño</th>
+          <th>Categoría</th>
+          <th>Monto</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+            </td>
+          </tr>
+        } @else {
+          @for (p of visibles(); track p.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <span class="avatar"
+                    >{{ p.nino.nombre.charAt(0) }}{{ p.nino.apellido.charAt(0) }}</span
+                  >
+                  <div class="lh-sm">
+                    <div class="fw-semibold">{{ p.nino.nombre }} {{ p.nino.apellido }}</div>
+                    <small class="text-muted">DNI {{ p.nino.dni ?? '—' }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <app-badge-estado tono="verde">{{
+                  p.nino.categoria?.nombre || '—'
+                }}</app-badge-estado>
+              </td>
+              <td class="fw-semibold">{{ p.monto | currency: 'PEN' : 'S/ ' }}</td>
+              <td class="lh-sm">
+                <div>{{ p.fecha | fecha }}</div>
+                <small class="text-muted">{{
+                  p.estado === 'PAGADO' ? 'Fecha de pago' : 'Vence'
+                }}</small>
+              </td>
+              <td>
+                <app-badge-estado [tono]="tono[estadoVisible(p)]">{{
+                  texto[estadoVisible(p)]
+                }}</app-badge-estado>
+              </td>
+              <td class="text-end text-nowrap">
+                @if (p.estado === 'PENDIENTE') {
+                  <button type="button" class="btn btn-sm btn-primary" (click)="pedirPago(p)">
+                    <i class="bi bi-cash-coin me-1"></i>Marcar como pagado
+                  </button>
+                } @else {
+                  <small class="text-muted"><i class="bi bi-check2-circle me-1"></i>Cobrada</small>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <app-estado-vacio icono="bi-cash-coin" mensaje="No se encontraron pagos." />
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-white small text-muted">{{ visibles().length }} registro(s)</div>
+</div>
+
+@if (porPagar(); as p) {
+  <app-modal titulo="Marcar como pagado" [ancho]="460" (cerrar)="cancelarPago()">
+    <p class="mb-2">
+      ¿Registrar el pago de <strong>{{ p.monto | currency: 'PEN' : 'S/ ' }}</strong> de
+      <strong>{{ p.nino.nombre }} {{ p.nino.apellido }}</strong
+      >?
+    </p>
+    <p class="text-muted small mb-0">
+      La mensualidad vence el {{ p.fecha | fecha }}. Quedará como pagada con la fecha de hoy.
+    </p>
+    @if (errorPago()) {
+      <div class="alert alert-danger mt-3 mb-0">{{ errorPago() }}</div>
+    }
+    <div pie>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        [disabled]="procesando()"
+        (click)="cancelarPago()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="procesando()"
+        (click)="confirmarPago()"
+      >
+        @if (procesando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+        } @else {
+          <i class="bi bi-cash-coin me-1"></i>Marcar como pagado
+        }
+      </button>
+    </div>
+  </app-modal>
+}

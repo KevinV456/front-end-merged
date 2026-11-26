@@ -1,0 +1,15 @@
+.pestanas {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.pestanas .nav-link {
+  color: var(--ts-700);
+  font-weight: 500;
+}
+.pestanas .nav-link.active {
+  color: var(--ts-900);
+  font-weight: 700;
+  border-color: var(--ts-borde) var(--ts-borde) #fff;
+  box-shadow: inset 0 3px 0 var(--ts-lima);
+}

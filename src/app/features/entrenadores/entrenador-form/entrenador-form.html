@@ -1,0 +1,223 @@
+<app-page-header
+  [titulo]="esEdicion() ? 'Editar entrenador' : 'Registrar entrenador'"
+  [subtitulo]="esEdicion() ? 'Corrige los datos del entrenador' : 'Alta de un nuevo entrenador'"
+/>
+
+@if (cargando()) {
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <span class="spinner-border spinner-border-sm me-2"></span>Cargando datos...
+    </div>
+  </div>
+} @else if (cargaFallida()) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      @for (m of errores(); track m) {
+        <p class="text-danger">{{ m }}</p>
+      }
+      <a routerLink="/entrenadores" class="btn btn-outline-secondary">Volver a la lista</a>
+    </div>
+  </div>
+} @else if (exito(); as r) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <span class="icono-stat mb-3"><i class="bi bi-check-lg"></i></span>
+      <h2 class="h5">{{ r.titulo }}</h2>
+      <p class="text-muted mb-4">{{ r.texto }}</p>
+      @if (r.aviso) {
+        <div class="alert alert-warning text-start mx-auto" style="max-width: 560px">
+          {{ r.aviso }}
+        </div>
+      }
+      @if (!esEdicion()) {
+        <button class="btn btn-primary me-2" (click)="registrarOtro()">Registrar otro</button>
+      }
+      <a
+        routerLink="/entrenadores"
+        class="btn"
+        [class]="esEdicion() ? 'btn-primary' : 'btn-outline-secondary'"
+      >
+        {{ esEdicion() ? 'Volver a la lista' : 'Ver lista' }}
+      </a>
+    </div>
+  </div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="guardar()" novalidate autocomplete="off">
+    <div class="card">
+      <div class="card-body p-4">
+        @if (errores().length) {
+          <div class="alert alert-danger">
+            @for (m of errores(); track m) {
+              <div>{{ m }}</div>
+            }
+          </div>
+        }
+
+        <app-form-seccion titulo="Datos del entrenador" icono="bi-person-vcard">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <app-form-campo etiqueta="Nombres" [requerido]="true" [error]="mensaje('nombre')">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="nombre"
+                  appFiltro="letras"
+                  maxlength="60"
+                  [class.is-invalid]="!!mensaje('nombre')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-6">
+              <app-form-campo etiqueta="Apellidos" [requerido]="true" [error]="mensaje('apellido')">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="apellido"
+                  appFiltro="letras"
+                  maxlength="60"
+                  [class.is-invalid]="!!mensaje('apellido')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo
+                etiqueta="DNI"
+                [requerido]="true"
+                [error]="mensaje('dni')"
+                ayuda="8 dígitos"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="dni"
+                  appFiltro="digitos"
+                  maxlength="8"
+                  inputmode="numeric"
+                  [class.is-invalid]="!!mensaje('dni')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo
+                etiqueta="Teléfono"
+                [requerido]="true"
+                [error]="mensaje('contacto')"
+                ayuda="9 dígitos, empieza con 9"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="contacto"
+                  appFiltro="digitos"
+                  maxlength="9"
+                  inputmode="numeric"
+                  [class.is-invalid]="!!mensaje('contacto')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo etiqueta="Correo" [error]="mensaje('correo')" ayuda="Opcional">
+                <input
+                  type="email"
+                  class="form-control"
+                  formControlName="correo"
+                  maxlength="120"
+                  [class.is-invalid]="!!mensaje('correo')"
+                />
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+
+        <app-form-seccion titulo="Asignación" icono="bi-diagram-3">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <app-form-campo
+                etiqueta="Categoría asignada"
+                [error]="mensaje('categoriaId')"
+                ayuda="Opcional. El entrenador solo verá esta categoría."
+              >
+                <select class="form-select" formControlName="categoriaId">
+                  <option [ngValue]="null">Sin asignar</option>
+                  @for (c of categorias(); track c.id) {
+                    <option [ngValue]="c.id">{{ c.nombre }} ({{ c.anioNacimiento }})</option>
+                  }
+                </select>
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+
+        <app-form-seccion titulo="Cuenta de acceso" icono="bi-key">
+          <div class="form-check mb-3">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="crearCuenta"
+              [checked]="crearCuenta()"
+              (change)="alternarCuenta($any($event.target).checked)"
+            />
+            <label class="form-check-label" for="crearCuenta">
+              {{
+                esEdicion()
+                  ? 'Crear cuenta de acceso (solo si aún no tiene una)'
+                  : 'Crear cuenta de acceso para iniciar sesión'
+              }}
+            </label>
+          </div>
+
+          @if (crearCuenta()) {
+            <div class="row g-3">
+              <div class="col-md-6">
+                <app-form-campo
+                  etiqueta="Usuario"
+                  [requerido]="true"
+                  [error]="mensaje('username')"
+                  ayuda="3 a 40 caracteres: letras, números, punto, guion o guion bajo"
+                >
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="username"
+                    maxlength="40"
+                    autocomplete="off"
+                    [class.is-invalid]="!!mensaje('username')"
+                  />
+                </app-form-campo>
+              </div>
+              <div class="col-md-6">
+                <app-form-campo
+                  etiqueta="Contraseña"
+                  [requerido]="true"
+                  [error]="mensaje('password')"
+                  ayuda="Mínimo 8 caracteres"
+                >
+                  <input
+                    type="password"
+                    class="form-control"
+                    formControlName="password"
+                    maxlength="72"
+                    autocomplete="new-password"
+                    [class.is-invalid]="!!mensaje('password')"
+                  />
+                </app-form-campo>
+              </div>
+            </div>
+          }
+        </app-form-seccion>
+      </div>
+
+      <div class="card-footer bg-white d-flex justify-content-end gap-2 p-3">
+        <a routerLink="/entrenadores" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+          } @else {
+            <i class="bi bi-check-lg me-1"></i
+            >{{ esEdicion() ? 'Guardar cambios' : 'Registrar entrenador' }}
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+}

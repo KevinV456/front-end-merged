@@ -1,0 +1,188 @@
+<app-page-header titulo="Niños inscritos" subtitulo="Jugadores activos de la academia">
+  @if (auth.tieneRol('ADMIN')) {
+    <a routerLink="/ninos/nuevo" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Nuevo niño
+    </a>
+  }
+</app-page-header>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label mb-1">Categoría</label>
+        <select
+          class="form-select"
+          [value]="categoriaSeleccionada()"
+          (change)="filtrarCategoria($any($event.target).value)"
+        >
+          <option value="">Todas</option>
+          @for (c of categorias(); track c.id) {
+            <option [value]="c.anioNacimiento">{{ c.nombre }} ({{ c.anioNacimiento }})</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-md-5">
+        <label class="form-label mb-1">Buscar por nombre o apellido</label>
+        <div class="input-group">
+          <input
+            #caja
+            type="text"
+            class="form-control"
+            placeholder="Ej: quispe"
+            [value]="texto()"
+            (keyup.enter)="buscar(caja.value)"
+          />
+          <button class="btn btn-primary" (click)="buscar(caja.value)">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <button class="btn btn-outline-secondary w-100" (click)="limpiar()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert alert-danger">{{ error() }}</div>
+}
+@if (exito()) {
+  <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>{{ exito() }}</div>
+}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-ts align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Jugador</th>
+          <th>Categoría</th>
+          <th>Modalidad</th>
+          <th>Edad</th>
+          <th>Apoderado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+            </td>
+          </tr>
+        } @else {
+          @for (n of ninos(); track n.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <span class="avatar">{{ n.nombre.charAt(0) }}{{ n.apellido.charAt(0) }}</span>
+                  <div class="lh-sm">
+                    <div class="fw-semibold">{{ n.nombre }} {{ n.apellido }}</div>
+                    <small class="text-muted">DNI {{ n.dni ?? '—' }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <app-badge-estado tono="verde">{{ n.categoriaNombre || '—' }}</app-badge-estado>
+              </td>
+              <td>
+                <app-badge-estado [tono]="n.modalidad === 'FUTBOL_7' ? 'lima' : 'azul'">
+                  {{ n.modalidad === 'FUTBOL_7' ? 'Fútbol 7' : 'Fútbol 11' }}
+                </app-badge-estado>
+              </td>
+              <td>{{ n.fechaNacimiento | edad }} años</td>
+              <td class="lh-sm">
+                <div>{{ n.apoderadoNombre }}</div>
+                <small class="text-muted">{{ n.apoderadoTelefono }}</small>
+              </td>
+              <td class="text-end text-nowrap">
+                <button
+                  type="button"
+                  class="btn-accion ver"
+                  title="Ver ficha"
+                  aria-label="Ver ficha"
+                  (click)="verNino.set(n)"
+                >
+                  <i class="bi bi-zoom-in"></i>
+                </button>
+                @if (auth.tieneRol('ADMIN')) {
+                  <a
+                    class="btn-accion editar ms-1"
+                    [routerLink]="['/ninos', n.id, 'editar']"
+                    title="Editar"
+                    aria-label="Editar"
+                  >
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  <button
+                    type="button"
+                    class="btn-accion borrar ms-1"
+                    title="Dar de baja"
+                    aria-label="Dar de baja"
+                    (click)="pedirBaja(n)"
+                  >
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <app-estado-vacio icono="bi-people" mensaje="No se encontraron niños." />
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-white small text-muted">{{ ninos().length }} registro(s)</div>
+</div>
+
+@if (verNino(); as n) {
+  <app-nino-detalle [nino]="n" (cerrar)="verNino.set(null)" />
+}
+
+@if (porDesactivar(); as n) {
+  <app-modal titulo="Dar de baja" [ancho]="460" (cerrar)="cancelarBaja()">
+    <p class="mb-2">
+      ¿Seguro que deseas dar de baja a <strong>{{ n.nombre }} {{ n.apellido }}</strong
+      >?
+    </p>
+    <p class="text-muted small mb-0">
+      Dejará de aparecer en el listado, pero se conservan su historial de asistencias y pagos.
+    </p>
+    @if (errorBaja()) {
+      <div class="alert alert-danger mt-3 mb-0">{{ errorBaja() }}</div>
+    }
+    <div pie>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        [disabled]="desactivando()"
+        (click)="cancelarBaja()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        [disabled]="desactivando()"
+        (click)="confirmarBaja()"
+      >
+        @if (desactivando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+        } @else {
+          <i class="bi bi-trash3 me-1"></i>Dar de baja
+        }
+      </button>
+    </div>
+  </app-modal>
+}

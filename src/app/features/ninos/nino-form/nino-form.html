@@ -1,0 +1,251 @@
+<app-page-header
+  [titulo]="esEdicion() ? 'Editar niño' : 'Registrar niño'"
+  [subtitulo]="esEdicion() ? 'Corrige los datos del jugador' : 'Inscripción de un nuevo jugador'"
+/>
+
+@if (cargando()) {
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <span class="spinner-border spinner-border-sm me-2"></span>Cargando datos...
+    </div>
+  </div>
+} @else if (cargaFallida()) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      @for (m of errores(); track m) {
+        <p class="text-danger">{{ m }}</p>
+      }
+      <a routerLink="/ninos" class="btn btn-outline-secondary">Volver a la lista</a>
+    </div>
+  </div>
+} @else if (exito(); as r) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <span class="icono-stat mb-3"><i class="bi bi-check-lg"></i></span>
+      <h2 class="h5">{{ r.titulo }}</h2>
+      <p class="text-muted mb-4">{{ r.texto }}</p>
+      @if (!esEdicion()) {
+        <button class="btn btn-primary me-2" (click)="registrarOtro()">Registrar otro</button>
+      }
+      <a
+        routerLink="/ninos"
+        class="btn"
+        [class]="esEdicion() ? 'btn-primary' : 'btn-outline-secondary'"
+      >
+        {{ esEdicion() ? 'Volver a la lista' : 'Ver lista' }}
+      </a>
+    </div>
+  </div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="guardar()" novalidate autocomplete="off">
+    <div class="card">
+      <div class="card-body p-4">
+        @if (errores().length) {
+          <div class="alert alert-danger">
+            @for (m of errores(); track m) {
+              <div>{{ m }}</div>
+            }
+          </div>
+        }
+
+        <app-form-seccion titulo="Datos del jugador" icono="bi-person-vcard">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <app-form-campo etiqueta="Nombres" [requerido]="true" [error]="mensaje('nombre')">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="nombre"
+                  appFiltro="letras"
+                  maxlength="60"
+                  [class.is-invalid]="!!mensaje('nombre')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-6">
+              <app-form-campo etiqueta="Apellidos" [requerido]="true" [error]="mensaje('apellido')">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="apellido"
+                  appFiltro="letras"
+                  maxlength="60"
+                  [class.is-invalid]="!!mensaje('apellido')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo etiqueta="DNI" [error]="mensaje('dni')" ayuda="Opcional · 8 dígitos">
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="dni"
+                  appFiltro="digitos"
+                  maxlength="8"
+                  inputmode="numeric"
+                  [class.is-invalid]="!!mensaje('dni')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo
+                etiqueta="Fecha de nacimiento"
+                [requerido]="true"
+                [error]="mensaje('fechaNacimiento')"
+              >
+                <input
+                  type="date"
+                  class="form-control"
+                  formControlName="fechaNacimiento"
+                  [min]="rango().min"
+                  [max]="rango().max"
+                  [class.is-invalid]="!!mensaje('fechaNacimiento') || !!anioSinCategoria()"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo
+                etiqueta="Categoría"
+                [requerido]="true"
+                [error]="errorCategoria()"
+                ayuda="Se sugiere según el año de nacimiento."
+              >
+                <select
+                  class="form-select"
+                  formControlName="categoriaId"
+                  [class.is-invalid]="!!errorCategoria()"
+                >
+                  <option [ngValue]="null">Selecciona...</option>
+                  @for (c of categorias(); track c.id) {
+                    <option [ngValue]="c.id">{{ c.nombre }} ({{ c.anioNacimiento }})</option>
+                  }
+                </select>
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+
+        <app-form-seccion titulo="Datos deportivos" icono="bi-trophy">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <app-form-campo
+                etiqueta="Modalidad"
+                [requerido]="true"
+                [error]="mensaje('modalidad')"
+              >
+                <select
+                  class="form-select"
+                  formControlName="modalidad"
+                  [class.is-invalid]="!!mensaje('modalidad')"
+                >
+                  <option value="">Selecciona...</option>
+                  <option value="FUTBOL_7">Fútbol 7</option>
+                  <option value="FUTBOL_11">Fútbol 11</option>
+                </select>
+              </app-form-campo>
+            </div>
+            <div class="col-md-3">
+              <app-form-campo etiqueta="Posición" [error]="mensaje('posicion')">
+                <select class="form-select" formControlName="posicion">
+                  <option value="">Sin definir</option>
+                  @for (p of posiciones(); track p) {
+                    <option [value]="p">{{ p }}</option>
+                  }
+                </select>
+              </app-form-campo>
+            </div>
+            <div class="col-6 col-md-2">
+              <app-form-campo etiqueta="Altura" [error]="mensaje('altura')">
+                <div class="input-group">
+                  <input
+                    type="number"
+                    class="form-control"
+                    formControlName="altura"
+                    step="0.1"
+                    [class.is-invalid]="!!mensaje('altura')"
+                  />
+                  <span class="input-group-text">cm</span>
+                </div>
+              </app-form-campo>
+            </div>
+            <div class="col-6 col-md-2">
+              <app-form-campo etiqueta="Peso" [error]="mensaje('peso')">
+                <div class="input-group">
+                  <input
+                    type="number"
+                    class="form-control"
+                    formControlName="peso"
+                    step="0.1"
+                    [class.is-invalid]="!!mensaje('peso')"
+                  />
+                  <span class="input-group-text">kg</span>
+                </div>
+              </app-form-campo>
+            </div>
+            <div class="col-md-2">
+              <app-form-campo etiqueta="Talla uniforme" [error]="mensaje('tallaUniforme')">
+                <select class="form-select" formControlName="tallaUniforme">
+                  <option value="">—</option>
+                  @for (t of tallas; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+
+        <app-form-seccion titulo="Apoderado" icono="bi-people">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <app-form-campo
+                etiqueta="Nombre completo"
+                [requerido]="true"
+                [error]="mensaje('apoderadoNombre')"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="apoderadoNombre"
+                  appFiltro="letras"
+                  maxlength="100"
+                  [class.is-invalid]="!!mensaje('apoderadoNombre')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo
+                etiqueta="Teléfono"
+                [requerido]="true"
+                [error]="mensaje('apoderadoTelefono')"
+                ayuda="9 dígitos, empieza con 9"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="apoderadoTelefono"
+                  appFiltro="digitos"
+                  maxlength="9"
+                  inputmode="numeric"
+                  [class.is-invalid]="!!mensaje('apoderadoTelefono')"
+                />
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+      </div>
+
+      <div class="card-footer bg-white d-flex justify-content-end gap-2 p-3">
+        <a routerLink="/ninos" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+          } @else {
+            <i class="bi bi-check-lg me-1"></i
+            >{{ esEdicion() ? 'Guardar cambios' : 'Registrar niño' }}
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+}

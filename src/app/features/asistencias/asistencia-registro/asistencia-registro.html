@@ -1,0 +1,174 @@
+<app-page-header
+  titulo="Asistencia"
+  subtitulo="Registro de asistencia por sesión de entrenamiento"
+/>
+
+@if (aviso()) {
+  <div class="alert alert-warning">{{ aviso() }}</div>
+}
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label mb-1">Entrenamiento</label>
+        <select
+          class="form-select"
+          [disabled]="cargandoEntrenamientos() || entrenamientos().length === 0"
+          (change)="elegirEntrenamiento(valorNumero($event))"
+        >
+          <option value="">
+            {{ cargandoEntrenamientos() ? 'Cargando...' : 'Selecciona un entrenamiento' }}
+          </option>
+          @for (e of entrenamientos(); track e.id) {
+            <option [value]="e.id" [selected]="e.id === entrenamientoId()">
+              {{ diaTexto(e.dia) }} {{ e.horario }} · {{ e.categoria.nombre }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label mb-1">Fecha de la sesión</label>
+        <select
+          class="form-select"
+          [disabled]="!entrenamiento()"
+          (change)="elegirFecha($any($event.target).value)"
+        >
+          @for (f of fechas(); track f) {
+            <option [value]="f" [selected]="f === fecha()">{{ etiquetaFecha(f) }}</option>
+          }
+        </select>
+        <div class="form-text">Solo aparecen los días en que se dicta este entrenamiento.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (exito()) {
+  <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>{{ exito() }}</div>
+}
+@if (errores().length) {
+  <div class="alert alert-danger">
+    @for (m of errores(); track m) {
+      <div>{{ m }}</div>
+    }
+  </div>
+}
+
+@if (!entrenamiento()) {
+  <div class="card">
+    <app-estado-vacio
+      icono="bi-clipboard-check"
+      mensaje="Selecciona un entrenamiento para tomar asistencia."
+    />
+  </div>
+} @else {
+  <div class="card">
+    <div
+      class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2"
+    >
+      <div class="d-flex flex-wrap gap-2">
+        <app-badge-estado tono="verde">Presentes {{ resumen().PRESENTE }}</app-badge-estado>
+        <app-badge-estado tono="rojo">Ausentes {{ resumen().AUSENTE }}</app-badge-estado>
+        <app-badge-estado tono="lima">Tardanzas {{ resumen().TARDANZA }}</app-badge-estado>
+        <app-badge-estado tono="azul">Justificados {{ resumen().JUSTIFICADO }}</app-badge-estado>
+      </div>
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        [disabled]="filas().length === 0"
+        (click)="marcarTodos('PRESENTE')"
+      >
+        <i class="bi bi-check2-all me-1"></i>Todos presentes
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-ts align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>Estado</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (cargandoLista()) {
+            <tr>
+              <td colspan="3" class="text-center py-4 text-muted">
+                <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+              </td>
+            </tr>
+          } @else {
+            @for (f of filas(); track f.ninoId) {
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="avatar">{{ f.nombre.charAt(0) }}{{ f.apellido.charAt(0) }}</span>
+                    <div class="lh-sm">
+                      <div class="fw-semibold">{{ f.apellido }}, {{ f.nombre }}</div>
+                      <small class="text-muted">{{ estadoRegistro(f) }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="segmentos" role="group" aria-label="Estado de asistencia">
+                    @for (e of estados; track e.valor) {
+                      <button
+                        type="button"
+                        class="opcion"
+                        [attr.data-estado]="e.valor"
+                        [class.activa]="f.estado === e.valor"
+                        (click)="cambiarEstado(f.ninoId, e.valor)"
+                      >
+                        {{ e.texto }}
+                      </button>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    placeholder="Opcional"
+                    maxlength="150"
+                    [value]="f.observacion"
+                    (input)="cambiarObservacion(f.ninoId, $any($event.target).value)"
+                  />
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3">
+                  <app-estado-vacio
+                    icono="bi-people"
+                    mensaje="No hay niños activos en esta categoría."
+                  />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center gap-2">
+      <small class="text-muted">
+        {{ filas().length }} niño(s) · {{ pendientes().length }} por guardar
+      </small>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="guardando() || pendientes().length === 0"
+        (click)="guardar()"
+      >
+        @if (guardando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+        } @else {
+          <i class="bi bi-check-lg me-1"></i>Guardar asistencia
+        }
+      </button>
+    </div>
+  </div>
+}

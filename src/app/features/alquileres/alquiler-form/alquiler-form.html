@@ -1,0 +1,199 @@
+<app-page-header
+  [titulo]="esEdicion() ? 'Editar alquiler' : 'Registrar alquiler'"
+  [subtitulo]="
+    esEdicion() ? 'Corrige los datos de la reserva' : 'Reserva de la cancha para un tercero'
+  "
+/>
+
+@if (cargando()) {
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <span class="spinner-border spinner-border-sm me-2"></span>Cargando datos...
+    </div>
+  </div>
+} @else if (cargaFallida()) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      @for (m of errores(); track m) {
+        <p class="text-danger">{{ m }}</p>
+      }
+      <a routerLink="/alquileres" class="btn btn-outline-secondary">Volver a la lista</a>
+    </div>
+  </div>
+} @else if (exito(); as r) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <span class="icono-stat mb-3"><i class="bi bi-check-lg"></i></span>
+      <h2 class="h5">{{ r.titulo }}</h2>
+      <p class="text-muted mb-4">{{ r.texto }}</p>
+      @if (!esEdicion()) {
+        <button class="btn btn-primary me-2" (click)="registrarOtro()">Registrar otro</button>
+      }
+      <a
+        routerLink="/alquileres"
+        class="btn"
+        [class]="esEdicion() ? 'btn-primary' : 'btn-outline-secondary'"
+      >
+        {{ esEdicion() ? 'Volver a la lista' : 'Ver lista' }}
+      </a>
+    </div>
+  </div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="guardar()" novalidate autocomplete="off">
+    <div class="card">
+      <div class="card-body p-4">
+        @if (conflicto()) {
+          <div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-calendar-x fs-5"></i>
+            <div>
+              <div class="fw-semibold">Choque de horario</div>
+              <div>{{ conflicto() }}</div>
+              <small class="text-muted"
+                >Cambia la cancha, la fecha o el horario e inténtalo de nuevo.</small
+              >
+            </div>
+          </div>
+        }
+        @if (errores().length) {
+          <div class="alert alert-danger">
+            @for (m of errores(); track m) {
+              <div>{{ m }}</div>
+            }
+          </div>
+        }
+
+        <app-form-seccion titulo="Reserva" icono="bi-calendar2-check">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <app-form-campo etiqueta="Cancha" [requerido]="true" [error]="mensaje('canchaId')">
+                <select
+                  class="form-select"
+                  formControlName="canchaId"
+                  [class.is-invalid]="!!mensaje('canchaId') || !!conflicto()"
+                >
+                  <option [ngValue]="null">Selecciona...</option>
+                  @for (c of canchas(); track c.id) {
+                    <option [ngValue]="c.id">{{ etiquetaCancha(c) }}</option>
+                  }
+                </select>
+              </app-form-campo>
+            </div>
+            <div class="col-md-6">
+              <app-form-campo etiqueta="Fecha" [requerido]="true" [error]="mensaje('fecha')">
+                <input
+                  type="date"
+                  class="form-control"
+                  formControlName="fecha"
+                  [class.is-invalid]="!!mensaje('fecha') || !!conflicto()"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-6">
+              <app-form-campo
+                etiqueta="Hora de inicio"
+                [requerido]="true"
+                [error]="mensaje('horaInicio')"
+              >
+                <input
+                  type="time"
+                  class="form-control"
+                  formControlName="horaInicio"
+                  [class.is-invalid]="!!mensaje('horaInicio') || !!conflicto()"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-6">
+              <app-form-campo
+                etiqueta="Hora de fin"
+                [requerido]="true"
+                [error]="mensaje('horaFin')"
+              >
+                <input
+                  type="time"
+                  class="form-control"
+                  formControlName="horaFin"
+                  [class.is-invalid]="!!mensaje('horaFin') || !!conflicto()"
+                />
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+
+        <app-form-seccion titulo="Cliente y monto" icono="bi-person-lines-fill">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <app-form-campo
+                etiqueta="Cliente"
+                [requerido]="true"
+                [error]="mensaje('solicitante')"
+                ayuda="Persona o club que alquila la cancha"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="solicitante"
+                  maxlength="120"
+                  [class.is-invalid]="!!mensaje('solicitante')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-3">
+              <app-form-campo
+                etiqueta="Contacto"
+                [error]="mensaje('contacto')"
+                ayuda="Opcional · teléfono o correo"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="contacto"
+                  maxlength="40"
+                  [class.is-invalid]="!!mensaje('contacto')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-3">
+              <app-form-campo etiqueta="Monto" [requerido]="true" [error]="mensaje('monto')">
+                <div class="input-group">
+                  <span class="input-group-text">S/</span>
+                  <input
+                    type="number"
+                    class="form-control"
+                    formControlName="monto"
+                    min="0"
+                    step="0.01"
+                    inputmode="decimal"
+                    [class.is-invalid]="!!mensaje('monto')"
+                  />
+                </div>
+              </app-form-campo>
+            </div>
+            @if (esEdicion()) {
+              <div class="col-md-4">
+                <app-form-campo etiqueta="Estado" [error]="mensaje('estado')">
+                  <select class="form-select" formControlName="estado">
+                    @for (e of estados; track e.valor) {
+                      <option [value]="e.valor">{{ e.texto }}</option>
+                    }
+                  </select>
+                </app-form-campo>
+              </div>
+            }
+          </div>
+        </app-form-seccion>
+      </div>
+
+      <div class="card-footer bg-white d-flex justify-content-end gap-2 p-3">
+        <a routerLink="/alquileres" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+          } @else {
+            <i class="bi bi-check-lg me-1"></i
+            >{{ esEdicion() ? 'Guardar cambios' : 'Registrar alquiler' }}
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+}

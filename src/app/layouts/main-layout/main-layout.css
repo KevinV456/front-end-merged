@@ -1,0 +1,15 @@
+.contenido {
+  margin-left: 248px;
+  min-height: 100vh;
+}
+
+.contenedor {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 991.98px) {
+  .contenido {
+    margin-left: 0;
+  }
+}

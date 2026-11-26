@@ -1,0 +1,118 @@
+<app-modal titulo="Ficha del jugador" (cerrar)="cerrar.emit()">
+  <div class="d-flex align-items-center gap-3">
+    <span class="avatar avatar-lg">{{ iniciales() }}</span>
+    <div>
+      <div class="h5 mb-2">{{ nino().nombre }} {{ nino().apellido }}</div>
+      <div class="d-flex flex-wrap gap-2">
+        <app-badge-estado tono="verde">{{
+          nino().categoriaNombre || 'Sin categoría'
+        }}</app-badge-estado>
+        <app-badge-estado [tono]="nino().modalidad === 'FUTBOL_7' ? 'lima' : 'azul'">
+          {{ nino().modalidad === 'FUTBOL_7' ? 'Fútbol 7' : 'Fútbol 11' }}
+        </app-badge-estado>
+        <app-badge-estado [tono]="nino().activo ? 'verde' : 'gris'">
+          {{ nino().activo ? 'Activo' : 'Dado de baja' }}
+        </app-badge-estado>
+      </div>
+    </div>
+  </div>
+
+  @if (auth.tieneRol('ADMIN')) {
+    <ul class="nav nav-tabs mt-3">
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="pestana() === 'datos'"
+          (click)="pestana.set('datos')"
+        >
+          <i class="bi bi-person-vcard me-1"></i>Datos
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="pestana() === 'pagos'"
+          (click)="pestana.set('pagos')"
+        >
+          <i class="bi bi-cash-coin me-1"></i>Pagos
+        </button>
+      </li>
+    </ul>
+  }
+
+  @if (pestana() === 'datos') {
+  <h3 class="seccion"><i class="bi bi-person-vcard"></i>Datos personales</h3>
+  <div class="row g-3">
+    <div class="col-sm-4 dato">
+      <small>DNI</small>
+      <div>{{ nino().dni ?? '—' }}</div>
+    </div>
+    <div class="col-sm-5 dato">
+      <small>Fecha de nacimiento</small>
+      <div>{{ nino().fechaNacimiento | fecha }}</div>
+    </div>
+    <div class="col-sm-3 dato">
+      <small>Edad</small>
+      <div>{{ nino().fechaNacimiento | edad }} años</div>
+    </div>
+  </div>
+
+  <h3 class="seccion"><i class="bi bi-trophy"></i>Datos deportivos</h3>
+  <div class="row g-3">
+    <div class="col-sm-4 dato">
+      <small>Posición</small>
+      <div>{{ nino().posicion ?? '—' }}</div>
+    </div>
+    <div class="col-4 col-sm-2 dato">
+      <small>Altura</small>
+      <div>{{ nino().altura != null ? nino().altura + ' cm' : '—' }}</div>
+    </div>
+    <div class="col-4 col-sm-3 dato">
+      <small>Peso</small>
+      <div>{{ nino().peso != null ? nino().peso + ' kg' : '—' }}</div>
+    </div>
+    <div class="col-4 col-sm-3 dato">
+      <small>Talla uniforme</small>
+      <div>{{ nino().tallaUniforme ?? '—' }}</div>
+    </div>
+  </div>
+
+  <h3 class="seccion"><i class="bi bi-people"></i>Apoderado</h3>
+  <div class="row g-3">
+    <div class="col-sm-7 dato">
+      <small>Nombre</small>
+      <div>{{ nino().apoderadoNombre }}</div>
+    </div>
+    <div class="col-sm-5 dato">
+      <small>Teléfono</small>
+      <div>
+        <a [href]="'tel:' + nino().apoderadoTelefono">{{ nino().apoderadoTelefono }}</a>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="seccion"><i class="bi bi-calendar-check"></i>Inscripción</h3>
+  <div class="row g-3">
+    <div class="col-sm-6 dato">
+      <small>Fecha de inscripción</small>
+      <div>{{ nino().fechaInscripcion | fecha }}</div>
+    </div>
+  </div>
+
+  }
+
+  @if (pestana() === 'pagos') {
+    <div class="mt-3"><app-nino-pagos [ninoId]="nino().id" /></div>
+  }
+
+  <div pie>
+    @if (auth.tieneRol('ADMIN')) {
+      <a class="btn btn-primary" [routerLink]="['/ninos', nino().id, 'editar']">
+        <i class="bi bi-pencil-square me-1"></i>Editar
+      </a>
+    }
+    <button type="button" class="btn btn-outline-secondary" (click)="cerrar.emit()">Cerrar</button>
+  </div>
+</app-modal>

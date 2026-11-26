@@ -1,0 +1,33 @@
+.segmentos {
+  display: inline-flex;
+  border: 1px solid var(--ts-borde);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.opcion {
+  border: 0;
+  border-right: 1px solid var(--ts-borde);
+  background: transparent;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #4a5a52;
+  white-space: nowrap;
+}
+.opcion:last-child {
+  border-right: 0;
+}
+.opcion:hover {
+  background: var(--ts-50);
+}
+
+.opcion.activa {
+  color: #fff;
+  font-weight: 600;
+}
+.opcion.activa[data-estado='PRESENTE'] { background: #1b7f4b; }
+.opcion.activa[data-estado='AUSENTE'] { background: #c53030; }
+.opcion.activa[data-estado='TARDANZA'] { background: var(--ts-lima); color: #2f4008; }
+.opcion.activa[data-estado='JUSTIFICADO'] { background: #2b6cb0; }

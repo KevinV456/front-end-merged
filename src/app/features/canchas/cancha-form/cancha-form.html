@@ -1,0 +1,113 @@
+<app-page-header
+  [titulo]="esEdicion() ? 'Editar ' + nombre().toLowerCase() : 'Registrar cancha'"
+  [subtitulo]="esEdicion() ? 'Corrige el horario o el estado' : 'Alta de una nueva cancha'"
+/>
+
+@if (cargando()) {
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <span class="spinner-border spinner-border-sm me-2"></span>Cargando datos...
+    </div>
+  </div>
+} @else if (cargaFallida()) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      @for (m of errores(); track m) {
+        <p class="text-danger">{{ m }}</p>
+      }
+      <a routerLink="/canchas" class="btn btn-outline-secondary">Volver a la lista</a>
+    </div>
+  </div>
+} @else if (exito(); as r) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <span class="icono-stat mb-3"><i class="bi bi-check-lg"></i></span>
+      <h2 class="h5">{{ r.titulo }}</h2>
+      <p class="text-muted mb-4">{{ r.texto }}</p>
+      @if (!esEdicion()) {
+        <button class="btn btn-primary me-2" (click)="registrarOtra()">Registrar otra</button>
+      }
+      <a
+        routerLink="/canchas"
+        class="btn"
+        [class]="esEdicion() ? 'btn-primary' : 'btn-outline-secondary'"
+      >
+        {{ esEdicion() ? 'Volver a la lista' : 'Ver lista' }}
+      </a>
+    </div>
+  </div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="guardar()" novalidate autocomplete="off">
+    <div class="card">
+      <div class="card-body p-4">
+        @if (errores().length) {
+          <div class="alert alert-danger">
+            @for (m of errores(); track m) {
+              <div>{{ m }}</div>
+            }
+          </div>
+        }
+
+        <app-form-seccion titulo="Datos de la cancha" icono="bi-pin-map">
+          <div class="row g-3">
+            <div class="col-6 col-md-4">
+              <app-form-campo
+                etiqueta="Apertura"
+                [requerido]="true"
+                [error]="mensaje('apertura')"
+                ayuda="Inicio del horario de atención"
+              >
+                <input
+                  type="time"
+                  class="form-control"
+                  formControlName="apertura"
+                  [class.is-invalid]="!!mensaje('apertura')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-6 col-md-4">
+              <app-form-campo
+                etiqueta="Cierre"
+                [requerido]="true"
+                [error]="mensaje('cierre')"
+                ayuda="Fin del horario de atención"
+              >
+                <input
+                  type="time"
+                  class="form-control"
+                  formControlName="cierre"
+                  [class.is-invalid]="!!mensaje('cierre')"
+                />
+              </app-form-campo>
+            </div>
+            <div class="col-md-4">
+              <app-form-campo etiqueta="Estado" [requerido]="true" [error]="mensaje('estado')">
+                <select
+                  class="form-select"
+                  formControlName="estado"
+                  [class.is-invalid]="!!mensaje('estado')"
+                >
+                  @for (e of estados; track e.valor) {
+                    <option [value]="e.valor">{{ e.texto }}</option>
+                  }
+                </select>
+              </app-form-campo>
+            </div>
+          </div>
+        </app-form-seccion>
+      </div>
+
+      <div class="card-footer bg-white d-flex justify-content-end gap-2 p-3">
+        <a routerLink="/canchas" class="btn btn-outline-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+          } @else {
+            <i class="bi bi-check-lg me-1"></i
+            >{{ esEdicion() ? 'Guardar cambios' : 'Registrar cancha' }}
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+}

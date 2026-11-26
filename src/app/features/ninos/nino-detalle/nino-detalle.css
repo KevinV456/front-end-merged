@@ -1,0 +1,21 @@
+.seccion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ts-700);
+  border-bottom: 2px solid var(--ts-100);
+  padding-bottom: 0.4rem;
+  margin: 1.5rem 0 0.9rem;
+}
+.dato small {
+  display: block;
+  color: #6b7a72;
+  font-size: 0.75rem;
+}
+.dato div {
+  font-weight: 500;
+}
